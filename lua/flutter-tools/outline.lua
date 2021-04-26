@@ -1,6 +1,7 @@
 local ui = require("flutter-tools.ui")
 local utils = require("flutter-tools.utils")
 local config = require("flutter-tools.config")
+local ca_utils = require('flutter-tools.utils.code_actions')
 
 local api = vim.api
 local fn = vim.fn
@@ -271,6 +272,15 @@ local function setup_outline_window(lines, highlights)
       [[<Cmd>lua __flutter_tools_select_outline_item()<CR>]],
       { noremap = true, nowait = true, silent = true }
     )
+
+    api.nvim_buf_set_keymap(
+      buf,
+      "n",
+      "a",
+      [[<Cmd>lua __flutter_tools_outline_code_actions()<CR>]],
+      { noremap = true, nowait = true, silent = true }
+    )
+
     setup_autocommands()
   end
 end
@@ -308,6 +318,32 @@ function _G.__flutter_tools_refresh_outline()
   if ok then
     replace(M.buf, lines, highlights)
   end
+end
+
+function _G.__flutter_tools_outline_code_actions()
+    local line = fn.line(".")
+    local uri = vim.b.outline_uri
+    if not uri then
+        return utils.echomsg([[Sorry! code actions not available]])
+    end
+    local outline = M.outlines[uri]
+    local item = outline[line]
+    local params = ca_utils.get_action_params(item, uri)
+
+    vim.lsp.buf_request(
+        params.bufnr,
+        "textDocument/codeAction",
+        params,
+        function(_, method, result)
+            vim.lsp.handlers["textDocument/codeAction"](_, method, result)
+            local code_buf = vim.uri_to_bufnr(uri)
+            local code_wins = vim.fn.win_findbuf(code_buf)
+            if not code_wins or #code_wins == 0 then
+                return
+            end
+            vim.api.nvim_win_set_cursor(code_wins[1], {item.start_line + 1, item.start_col + 1})
+        end
+    )
 end
 
 function _G.__flutter_tools_select_outline_item()
