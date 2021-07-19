@@ -320,7 +320,9 @@ function _G.__flutter_tools_select_outline_item()
     return utils.echomsg([[Sorry! this item can't be opened]])
   end
   vim.cmd("drop " .. vim.uri_to_fname(uri))
-  fn.cursor(item.start_line, item.start_col)
+  -- For whatever reason the cursor always lands one row up and two columns
+  -- behind so handle that
+  fn.cursor(item.start_line + 1, item.start_col + 2)
 end
 
 local function highlight_current_item(item)
