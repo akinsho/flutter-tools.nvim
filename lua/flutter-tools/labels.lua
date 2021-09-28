@@ -7,13 +7,33 @@ local namespace = api.nvim_create_namespace("flutter_tools_closing_labels")
 local function render_labels(labels, opts)
   api.nvim_buf_clear_namespace(0, namespace, 0, -1)
   opts = opts or {}
-  local highlight = opts and opts.highlight or "Comment"
-  local prefix = opts and opts.prefix or "// "
+  local highlight = opts.highlight or "Comment"
+
+  -- Have ot use `rawget` to override what the default format is that we provide in config.
+  local user_format = rawget(opts, "format")
+
+  local prefix = opts.prefix
+  if prefix and user_format then
+    error(
+      "[flutter-tools.labels] Cannot have both prefix and format specified" .. vim.inspect(opts)
+    )
+  end
+
+  -- A bit complicated, but basically just keeps backwards compat of passing "prefix"
+  -- while still allowing users to pass "format" instead.
+  local format
+  if user_format then
+    format = user_format
+  elseif prefix then
+    format = prefix .. "%s"
+  else
+    format = opts.format
+  end
 
   for _, item in ipairs(labels) do
     local line = item.range["end"].line
     api.nvim_buf_set_virtual_text(0, namespace, tonumber(line), {
-      { prefix .. item.label, highlight },
+      { string.format(format, item.label), highlight },
     }, {})
   end
 end
