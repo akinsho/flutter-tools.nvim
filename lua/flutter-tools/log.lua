@@ -110,6 +110,7 @@ function M.__resurrect()
   vim.bo[buf].modifiable = false
   vim.bo[buf].modified = false
   vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].buflisted = false
 end
 
 function M.clear()
