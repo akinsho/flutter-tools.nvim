@@ -35,15 +35,16 @@ local function _dart_sdk_root(paths)
     return path.join(flutter_bin, dart_sdk)
   end
 
-  if utils.executable("dart") then return fn.resolve(fn.exepath("dart")) end
+  if utils.executable("dart") then return fn.resolve(path.dirname(path.dirname(fn.exepath("dart")))) end
 
   return ""
 end
 
-local function _flutter_sdk_dart_bin(flutter_sdk)
-  -- retrieve the Dart binary from the Flutter SDK
+local function _sdk_dart_bin(paths)
+  -- retrieve the Dart binary from the Dart SDK or the Flutter SDK
   local binary_name = require("flutter-tools.utils.path").is_windows and "dart.bat" or "dart"
-  return path.join(flutter_sdk, "bin", binary_name)
+  local sdk = paths.dart_sdk or paths.flutter_sdk
+  return path.join(sdk, "bin", binary_name)
 end
 
 ---Get paths for flutter and dart based on the binary locations
@@ -82,9 +83,9 @@ local function path_from_lookup_cmd(lookup_cmd, callback)
     local result = j:result()
     local flutter_sdk_path = result[1]
     if flutter_sdk_path then
-      paths.dart_bin = _flutter_sdk_dart_bin(flutter_sdk_path)
-      paths.flutter_bin = path.join(flutter_sdk_path, "bin", "flutter")
       paths.flutter_sdk = flutter_sdk_path
+      paths.flutter_bin = path.join(flutter_sdk_path, "bin", "flutter")
+      paths.dart_bin = _sdk_dart_bin(paths)
       callback(paths)
     else
       paths = get_default_binaries()
@@ -113,7 +114,7 @@ function M.get(callback)
         fvm = true,
       }
       _paths.dart_sdk = _dart_sdk_root(_paths)
-      _paths.dart_bin = _flutter_sdk_dart_bin(_paths.flutter_sdk)
+      _paths.dart_bin = _sdk_dart_bin(_paths)
       return callback(_paths)
     end
   end
@@ -122,7 +123,7 @@ function M.get(callback)
     local flutter_path = fn.resolve(conf.flutter_path)
     _paths = { flutter_bin = flutter_path, flutter_sdk = _flutter_sdk_root(flutter_path) }
     _paths.dart_sdk = _dart_sdk_root(_paths)
-    _paths.dart_bin = _flutter_sdk_dart_bin(_paths.flutter_sdk)
+    _paths.dart_bin = _sdk_dart_bin(_paths)
     return callback(_paths)
   end
 
@@ -137,7 +138,7 @@ function M.get(callback)
   if not _paths then
     _paths = get_default_binaries()
     _paths.dart_sdk = _dart_sdk_root(_paths)
-    if _paths.flutter_sdk then _paths.dart_bin = _flutter_sdk_dart_bin(_paths.flutter_sdk) end
+    if _paths.flutter_sdk then _paths.dart_bin = _sdk_dart_bin(_paths) end
   end
 
   return callback(_paths)
