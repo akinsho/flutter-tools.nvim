@@ -159,7 +159,24 @@ local function run(opts, project_conf)
   executable.get(function(paths)
     local args = opts.cli_args or get_run_args(opts, project_conf)
     ui.notify("Starting flutter project...")
-    runner = use_debugger_runner() and debugger_runner or job_runner
+    if use_debugger_runner() then
+      if not debugger_runner.has_config() then
+        require("flutter-tools.dap")
+            .select_config(paths, function(launch_config)
+              debugger_runner:set_config(launch_config)
+              if not launch_config.deviceId then
+                -- if no device set in launch_config, get one to avoid selecting config twice
+                devices.list_devices()
+                return
+              end
+              run(opts, project_conf)
+            end)
+        return
+      end
+      runner = debugger_runner
+    else
+      runner = job_runner
+    end
     runner:run(paths, args, lsp.get_lsp_root_dir(), on_run_data, on_run_exit)
   end)
 end

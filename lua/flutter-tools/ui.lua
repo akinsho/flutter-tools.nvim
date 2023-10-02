@@ -5,6 +5,7 @@ local fmt = string.format
 local entry_type = {
   CODE_ACTION = 1,
   DEVICE = 2,
+  DEBUG_CONFIG = 3,
 }
 
 ---@generic T
@@ -101,6 +102,12 @@ local function get_telescope_picker_config(items, title, on_select)
           id = data.id,
           label = data.name,
           hint = data.platform,
+          command = function() on_select(data) end,
+        }
+      elseif item.type == entry_type.DEBUG_CONFIG then
+        return {
+          id = data.name,
+          label = data.name,
           command = function() on_select(data) end,
         }
       end

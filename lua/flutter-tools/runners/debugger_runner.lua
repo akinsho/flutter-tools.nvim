@@ -1,7 +1,6 @@
 local lazy = require("flutter-tools.lazy")
 local ui = lazy.require("flutter-tools.ui") ---@module "flutter-tools.ui"
 local dev_tools = lazy.require("flutter-tools.dev_tools") ---@module "flutter-tools.dev_tools"
-local config = lazy.require("flutter-tools.config") ---@module "flutter-tools.config"
 local utils = lazy.require("flutter-tools.utils") ---@module "flutter-tools.utils"
 local _, dap = pcall(require, "dap")
 
@@ -26,10 +25,20 @@ local command_requests = {
 local service_activation_requests = {
   visual_debug = "ext.flutter.debugPaint",
 }
+local launch_config = nil
+
+function DebuggerRunner:set_config(config) launch_config = config end
+
+function DebuggerRunner:has_config() return launch_config ~= nil end
 
 function DebuggerRunner:is_running() return dap.session() ~= nil end
 
 function DebuggerRunner:run(paths, args, cwd, on_run_data, on_run_exit)
+  if not launch_config then
+    ui.notify("No launch configuration for DAP chosen", ui.ERROR)
+    return
+  end
+
   local started = false
   local before_start_logs = {}
   service_extensions_isolateid = {}
@@ -74,31 +83,6 @@ function DebuggerRunner:run(paths, args, cwd, on_run_data, on_run_exit)
     end
   end
 
-  local launch_configurations = {}
-  local launch_configuration_count = 0
-  config.debugger.register_configurations(paths)
-  local all_configurations = require("dap").configurations.dart
-  for _, c in ipairs(all_configurations) do
-    if c.request == "launch" then
-      table.insert(launch_configurations, c)
-      launch_configuration_count = launch_configuration_count + 1
-    end
-  end
-
-  local launch_config
-  if launch_configuration_count == 0 then
-    ui.notify("No launch configuration for DAP found", ui.ERROR)
-    return
-  elseif launch_configuration_count == 1 then
-    launch_config = launch_configurations[1]
-  else
-    launch_config = require("dap.ui").pick_one_sync(
-      launch_configurations,
-      "Select launch configuration",
-      function(item) return fmt("%s : %s", item.name, item.program, vim.inspect(item.args)) end
-    )
-  end
-  if not launch_config then return end
   launch_config = vim.deepcopy(launch_config)
   launch_config.cwd = cwd
   launch_config.args = vim.list_extend(launch_config.args or {}, args or {})
@@ -132,6 +116,7 @@ function DebuggerRunner:send(cmd, quiet)
 end
 
 function DebuggerRunner:cleanup()
+  launch_config = nil
   if dap.session() then dap.terminate() end
 end
 

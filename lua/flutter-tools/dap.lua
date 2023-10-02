@@ -11,6 +11,38 @@ end
 
 local M = {}
 
+function M.select_config(paths, callback)
+  local launch_configurations = {}
+  local launch_configuration_count = 0
+  require("flutter-tools.config").debugger.register_configurations(paths)
+  local all_configurations = dap.configurations.dart
+  for _, c in ipairs(all_configurations) do
+    if c.request == "launch" then
+      table.insert(launch_configurations, c)
+      launch_configuration_count = launch_configuration_count + 1
+    end
+  end
+  if launch_configuration_count == 0 then
+    ui.notify("No launch configuration for DAP found", ui.ERROR)
+    return
+  elseif launch_configuration_count == 1 then
+    callback(launch_configurations[1])
+  else
+    local launch_options = vim.tbl_map(function(item)
+      return {
+        text = item.name,
+        type = ui.entry_type.DEBUG_CONFIG,
+        data = item,
+      }
+    end, launch_configurations)
+    ui.select({
+      title = "Select launch configuration",
+      lines = launch_options,
+      on_select = callback,
+    })
+  end
+end
+
 function M.setup(config)
   local opts = config.debugger
   require("flutter-tools.executable").get(function(paths)
