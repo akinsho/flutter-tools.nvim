@@ -17,7 +17,11 @@ function M.setup(config)
     local root_patterns = { ".git", "pubspec.yaml" }
     local current_dir = vim.fn.expand("%:p:h")
     local root_dir = path.find_root(root_patterns, current_dir) or current_dir
-    local is_flutter_project = vim.loop.fs_stat(path.join(root_dir, ".metadata"))
+    local function search_pubspec_for_flutter_sdk()
+      local pubspec_path = path.join(root_dir, "pubspec.yaml")
+      return pcall(vim.cmd, "silent 1vimgrep! /sdk:\\_s\\+flutter\\C/j" .. pubspec_path)
+    end
+    local is_flutter_project = vim.loop.fs_stat(path.join(root_dir, ".metadata")) or search_pubspec_for_flutter_sdk()
 
     if is_flutter_project then
       dap.adapters.dart = {
