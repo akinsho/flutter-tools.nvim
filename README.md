@@ -219,10 +219,10 @@ require("flutter-tools").setup {
     run_via_dap = false, -- use dap instead of a plenary job to run flutter apps
     -- if empty dap will not stop on any exceptions, otherwise it will stop on those specified
     -- see |:help dap.set_exception_breakpoints()| for more info
-    exception_breakpoints = {}
+    exception_breakpoints = {},
     register_configurations = function(paths)
       require("dap").configurations.dart = {
-        <put here config that you would find in .vscode/launch.json>
+        "<put here config that you would find in .vscode/launch.json>"
       }
     end,
   },
@@ -261,7 +261,7 @@ require("flutter-tools").setup {
       virtual_text_str = "■", -- the virtual text character to highlight
     },
     on_attach = my_custom_on_attach,
-    capabilities = my_custom_capabilities -- e.g. lsp_status capabilities
+    capabilities = my_custom_capabilities, -- e.g. lsp_status capabilities
     --- OR you can specify a function to deactivate or change or control how the config is created
     capabilities = function(config)
       config.specificThingIDontWant = false
