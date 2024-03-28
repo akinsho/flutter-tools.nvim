@@ -93,6 +93,9 @@ the excellent [dressing.nvim](https://github.com/stevearc/dressing.nvim).
 
 - You might encounter issues using this plugin on the `master` channel of flutter.
 
+- You may encounter issues when using treesitter with indentation support for Dart ([relevant issue](https://github.com/nvim-treesitter/nvim-treesitter/issues/4945)).
+  This is not related to flutter-tools.nvim.
+
 ## Setup
 
 ### Vimscript
