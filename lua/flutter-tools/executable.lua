@@ -127,7 +127,7 @@ function M.get(callback)
   end
 
   if config.flutter_path then
-    local flutter_path = fn.resolve(config.flutter_path)
+    local flutter_path = config.flutter_path
     _paths = { flutter_bin = flutter_path, flutter_sdk = _flutter_sdk_root(flutter_path) }
     _paths.dart_sdk = _dart_sdk_root(_paths)
     _paths.dart_bin = _flutter_sdk_dart_bin(_paths.flutter_sdk)
