@@ -48,6 +48,7 @@ local function setup_commands()
     nargs = "*",
   })
   --- Log
+  command("FlutterLogToggle", log.toggle_dev_log)
   command("FlutterLogClear", log.clear)
   --- LSP
   command("FlutterSuper", lsp.dart_lsp_super)

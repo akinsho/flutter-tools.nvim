@@ -165,6 +165,8 @@ require("flutter-tools").setup {} -- use defaults
 - `FlutterSuper` - Go to super class, method using custom LSP method `dart/textDocument/super`.
 - `FlutterReanalyze` - Forces LSP server reanalyze using custom LSP method `dart/reanalyze`.
 - `FlutterRename` - Renames and updates imports if `lsp.settings.renameFilesWithClasses == "always"`
+- `FlutterLogToggle` - Toggles the log window.  
+- `FlutterLogClear` - Clears the log window.
 
 <hr/>
 

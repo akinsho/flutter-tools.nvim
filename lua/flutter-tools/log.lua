@@ -1,8 +1,10 @@
 local lazy = require("flutter-tools.lazy")
 local ui = lazy.require("flutter-tools.ui") ---@module "flutter-tools.ui"
 local utils = lazy.require("flutter-tools.utils") ---@module "flutter-tools.utils"
+local config = lazy.require("flutter-tools.config") ---@module "flutter-tools.config"
 
 local api = vim.api
+local fn = vim.fn
 local fmt = string.format
 
 local M = {
@@ -22,16 +24,26 @@ local function exists()
   return is_valid
 end
 
-local function close_dev_log()
+
+local function is_open()
+  local wins = fn.win_findbuf(M.buf)
+  return wins and #wins > 0
+end
+
+local function delete_dev_log()
   M.buf = nil
   M.win = nil
 end
 
-local function create(config)
+local function close_dev_log()
+  if api.nvim_win_is_valid(M.win) then api.nvim_win_close(M.win, true) end
+end
+
+local function open_dev_log()
   local opts = {
     filename = M.filename,
     filetype = "log",
-    open_cmd = config.open_cmd,
+    open_cmd = config.dev_log.open_cmd,
   }
   ui.open_win(opts, function(buf, win)
     if not buf then
@@ -40,11 +52,20 @@ local function create(config)
     end
     M.buf = buf
     M.win = win
+
     api.nvim_create_autocmd("BufWipeout", {
       buffer = buf,
-      callback = close_dev_log,
+      callback = delete_dev_log,
     })
   end)
+end
+
+function M.toggle_dev_log()
+  if is_open() then
+    close_dev_log()
+  else
+    open_dev_log()
+  end
 end
 
 function M.get_content()
@@ -86,7 +107,7 @@ end
 ---@param opts table
 function M.log(data, opts)
   if opts.enabled then
-    if not exists() then create(opts) end
+    if not exists() then open_dev_log(opts) end
     append(M.buf, { data })
     autoscroll(M.buf, M.win)
   end

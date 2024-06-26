@@ -133,11 +133,11 @@ end
 ---@param on_open fun(buf: integer, win: integer)
 ---@return nil
 function M.open_win(opts, on_open)
-  local open_cmd = opts.open_cmd or "botright 30vnew"
+  local open_cmd = opts.open_cmd or "botright 30vsplit"
   local name = opts.filename or "__Flutter_Tools_Unknown__"
   open_cmd = fmt("%s %s", open_cmd, name)
-
   vim.cmd(open_cmd)
+
   local win = api.nvim_get_current_win()
   local buf = api.nvim_get_current_buf()
   vim.bo[buf].filetype = opts.filetype
