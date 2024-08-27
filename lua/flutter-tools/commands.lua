@@ -10,6 +10,7 @@ local lsp = lazy.require("flutter-tools.lsp") ---@module "flutter-tools.lsp"
 local job_runner = lazy.require("flutter-tools.runners.job_runner") ---@module "flutter-tools.runners.job_runner"
 local debugger_runner = lazy.require("flutter-tools.runners.debugger_runner") ---@module "flutter-tools.runners.debugger_runner"
 local dev_log = lazy.require("flutter-tools.log") ---@module "flutter-tools.log"
+local Path = require("plenary.path")
 
 local M = {}
 
@@ -167,11 +168,34 @@ local function get_device_from_args(args)
   end
 end
 
+--- Get the project root for specified target.
+--- In monorepo, the target project is different from the lsp root.
+---@param target string?
+local function get_project_root(target)
+  local cwd = lsp.get_lsp_root_dir()
+  if target then
+    local target_path = Path:new(cwd, target)
+    local project_root = target_path:find_upwards('pubspec.yaml'):parent()
+    if (project_root) then
+      return project_root.filename
+    end
+  end
+  return cwd
+end
+
 ---@param opts RunOpts
 ---@param project_conf flutter.ProjectConfig?
 local function run(opts, project_conf)
   opts = opts or {}
   executable.get(function(paths)
+    local target = project_conf and project_conf.target
+    local lsp_root = lsp.get_lsp_root_dir()
+    local cwd = get_project_root(target)
+    -- If lsp root is different from the project root, change the target to be
+    -- relative to the project root
+    if cwd ~= lsp_root then
+      project_conf.target = Path:new(lsp_root, target):make_relative(cwd)
+    end
     local args = opts.cli_args or get_run_args(opts, project_conf)
 
     current_device = opts.device or get_device_from_args(args)
@@ -188,7 +212,7 @@ local function run(opts, project_conf)
       end
     end
     runner = use_debugger_runner() and debugger_runner or job_runner
-    runner:run(paths, args, lsp.get_lsp_root_dir(), on_run_data, on_run_exit)
+    runner:run(paths, args, cwd, on_run_data, on_run_exit)
   end)
 end
 

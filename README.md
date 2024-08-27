@@ -232,7 +232,9 @@ require("flutter-tools").setup {
   },
   flutter_path = "<full/path/if/needed>", -- <-- this takes priority over the lookup
   flutter_lookup_cmd = nil, -- example "dirname $(which flutter)" or "asdf where flutter"
-  root_patterns = { ".git", "pubspec.yaml" }, -- patterns to find the root of your flutter project
+  -- patterns to find the root of your flutter project. In case of monorepo,
+  -- add your monorepo marker here (ex: "melos.yaml")
+  root_patterns = { ".git", "pubspec.yaml" }, 
   fvm = false, -- takes priority over path, uses <workspace>/.fvm/flutter_sdk if enabled
   widget_guides = {
     enabled = false,
@@ -333,6 +335,12 @@ require('flutter-tools').setup_project({
     device = 'chrome',
     flavor = 'WebApp',
     web_port = 4000
+  },
+  {
+    name = 'Monorepo example',
+    device = 'macos',
+    -- make sure to update 'root_patterns' to include your monorepo marker
+    target = 'packages/example/lib/main.dart' 
   },
   {
     name = 'Profile',
