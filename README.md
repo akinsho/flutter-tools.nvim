@@ -272,6 +272,7 @@ require("flutter-tools").setup {
       virtual_text = true, -- show the highlight using virtual text
       virtual_text_str = "■", -- the virtual text character to highlight
     },
+    cmd = {"command", "to", "run", "lsp"}, -- The command to run the dart lsp (e.g. { "/custom/dart/path", "language-server", "--protocol=lsp" })
     on_attach = my_custom_on_attach,
     capabilities = my_custom_capabilities, -- e.g. lsp_status capabilities
     --- OR you can specify a function to deactivate or change or control how the config is created
