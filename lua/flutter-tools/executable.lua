@@ -99,10 +99,16 @@ local function path_from_lookup_cmd(lookup_cmd, callback)
   job:start()
 end
 
+local function _flutter_executable_name()
+  if path.isWindows then return "flutter.bat" end
+  return "flutter"
+end
+
 local function _flutter_bin_from_fvm()
   local fvm_root =
     fs.dirname(fs.find(".fvm", { path = luv.cwd(), upward = true, type = "directory" })[1])
-  local flutter_bin_symlink = path.join(fvm_root, ".fvm", "flutter_sdk", "bin", "flutter")
+  local flutter_bin_symlink =
+    path.join(fvm_root, ".fvm", "flutter_sdk", "bin", _flutter_executable_name())
   local flutter_bin = luv.fs_realpath(flutter_bin_symlink)
   if path.exists(flutter_bin_symlink) and path.exists(flutter_bin) then return flutter_bin end
 end
@@ -118,7 +124,6 @@ function M.get(callback)
       _paths = {
         flutter_bin = flutter_bin,
         flutter_sdk = _flutter_sdk_root(flutter_bin),
-        fvm = true,
       }
       _paths.dart_sdk = _dart_sdk_root(_paths)
       _paths.dart_bin = _flutter_sdk_dart_bin(_paths.flutter_sdk)
