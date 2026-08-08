@@ -94,6 +94,7 @@ end
 ---@param project_config flutter.ProjectConfig?
 ---@param launch_config dap.Configuration?
 local function on_run_exit(result, cli_args, opts, project_config, launch_config)
+  shutdown()
   local matched_error, msg = has_recoverable_error(result)
   if matched_error then
     local lines = devices.to_selection_entries(result)
@@ -110,7 +111,6 @@ local function on_run_exit(result, cli_args, opts, project_config, launch_config
       end,
     })
   end
-  shutdown()
 end
 
 --- Take arguments from the commandline and pass
