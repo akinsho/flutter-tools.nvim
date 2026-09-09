@@ -1,5 +1,6 @@
 local lazy = require("flutter-tools.lazy")
 local pickers = lazy.require("telescope.pickers") ---@module "telescope.pickers"
+local snack_picker = lazy.require("snacks.picker") ---@module "snacks.picker"
 local finders = lazy.require("telescope.finders") ---@module "telescope.finders"
 local sorters = lazy.require("telescope.sorters") ---@module "telescope.sorters"
 local actions = lazy.require("telescope.actions") ---@module "telescope.actions"
@@ -97,9 +98,8 @@ function M.get_config(items, user_opts, opts)
   }))
 end
 
-function M.commands(opts)
+local function generate_commands_list()
   local cmds = {}
-
   if commands.is_running() then
     cmds = {
       {
@@ -264,8 +264,31 @@ function M.commands(opts)
       },
     })
   end
+  return cmds
+end
 
-  pickers.new(M.get_config(cmds, opts, { title = "Flutter tools commands" })):find()
+function M.commands(opts)
+  pickers
+    .new(M.get_config(generate_commands_list(), opts, { title = "Flutter tools commands" }))
+    :find()
+end
+
+function M.commands_snack()
+  local cmds = generate_commands_list()
+  for index, item in ipairs(cmds) do
+    item.text = index .. ". " .. item.label
+  end
+  snack_picker.pick({
+    title = "Flutter Tools",
+    format = "text",
+    autoselect = true,
+    finder = function() return cmds end,
+    confirm = function(picker, item)
+      picker:close()
+      if item and item.command then item.command() end
+    end,
+    layout = "select",
+  })
 end
 
 local function execute_fvm_use(bufnr)
